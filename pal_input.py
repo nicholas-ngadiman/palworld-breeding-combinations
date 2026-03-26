@@ -6,7 +6,7 @@ def ask_user_for_input() -> list[str]:
     pals: list[str] = []
     print("Press 'Y/y' to proceed to the next step. Press 'N/n' to exit.")
     while True:
-        pal = input(f"Please enter the name of Pal {len(pals) + 1}: ").title()
+        pal = input(f"Please enter the name of Pal {len(pals) + 1}: ").strip().title()
         if pal == 'N':
             sys.exit()
         if pal =='Y':
