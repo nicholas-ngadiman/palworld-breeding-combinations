@@ -56,4 +56,5 @@ def get_combinations(pals: list[str]):
                 if child not in combinations:
                     combinations[child] = []
                 combinations[child].append(f"{pal1} + {pal2}")
+        browser.close()
         return combinations
