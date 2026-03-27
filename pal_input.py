@@ -14,7 +14,7 @@ def ask_user_for_input(filename: str | None = None) -> list[str]:
                 break
             pals.append(pal)
     else:
-        print("Opening file: {filename}")
+        print(f"Opening file: {filename}")
         with open(filename, "r", encoding="utf-8") as f:
             pals = f.readlines()
     return pals
