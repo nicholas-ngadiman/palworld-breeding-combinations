@@ -6,7 +6,7 @@ from run_playwright import get_combinations
 def main():
     """Main Function"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("filename")
+    parser.add_argument("-f", "--filename")
     args = parser.parse_args()
     print("This script requires you to enter all the Pal names that will be the parents and then it will output the all the children that can be bred, along with the combinations.")
     print("The Pal names need to be spelled correctly, but do not need to be capitalised.")
