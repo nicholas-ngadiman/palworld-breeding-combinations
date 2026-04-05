@@ -5,11 +5,11 @@ from tqdm import tqdm
 
 BASE_URL = 'https://palworld.gg/breeding-calculator'
 
-def get_combinations(pals: list[str]):
+def get_breeding_combinations(pals: list[str]):
     """Query combinations from Palworld.gg"""
     combinations: dict[str, list[str]] = {}
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(headless=False)
         page = browser.new_page()
         page.goto(BASE_URL)
 
@@ -24,6 +24,7 @@ def get_combinations(pals: list[str]):
             page.locator(".pal .container").get_by_text(f"{pal1}").first.click()
             time.sleep(0.2)
 
+            # Handle specific edge case where gender matters
             for pal2 in tqdm(pals):
                 if (pal1 == "Katress" and pal2 == "Wixen") or (pal1 == "Wixen" and pal2 == "Katress"):
                     if "Katress Ignis" not in combinations:
@@ -57,4 +58,4 @@ def get_combinations(pals: list[str]):
                     combinations[child] = []
                 combinations[child].append(f"{pal1.strip()} + {pal2.strip()}")
         browser.close()
-        return combinations
+    return combinations

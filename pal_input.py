@@ -1,8 +1,16 @@
 """Module for Retrieving User's Pal Names"""
 import sys
+from argparse import ArgumentParser
+
+def set_cli_args() -> str:
+    """Sets the arguments when running the project"""
+    parser = ArgumentParser()
+    parser.add_argument("-f", "--filename")
+    args = parser.parse_args()
+    return args.filename
 
 def ask_user_for_input(filename: str | None = None) -> list[str]:
-    """ Ask user for all Pal names"""
+    """Receives Pal names from the user via file or input"""
     pals: list[str] = []
     if filename is None:
         print("Press 'Y/y' to proceed to the next step. Press 'N/n' to exit.")
