@@ -9,7 +9,7 @@ def get_breeding_combinations(pals: list[str]):
     """Query combinations from Palworld.gg"""
     combinations: dict[str, list[str]] = {}
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch()
         page = browser.new_page()
         page.goto(BASE_URL)
 
