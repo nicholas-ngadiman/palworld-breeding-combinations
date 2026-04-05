@@ -14,6 +14,6 @@ def main():
     print(f"Writing results into: {RESULTS_FILE_NAME}")
     with open(RESULTS_FILE_NAME , "w", encoding="utf-8") as f:
         for k, v in combinations.items():
-            f.write(f"{k}: {v}\n")
+            f.write(f"{k}: {v}\n\n")
 if __name__ == "__main__":
     main()
