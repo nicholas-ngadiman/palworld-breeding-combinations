@@ -1,31 +1,47 @@
-"""Use Playwright to query Palworld.gg"""
-import time
-from playwright.sync_api import sync_playwright
+"""Query Palworld.gg breeding combinations using Playwright"""
+from playwright.sync_api import Page, sync_playwright
 from tqdm import tqdm
 
 BASE_URL = 'https://palworld.gg/breeding-calculator'
 
-def get_breeding_combinations(pals: list[str]):
-    """Query combinations from Palworld.gg"""
+def select_pal(page: Page, pal_name: str, index: int) -> None:
+    """Select a Pal in the specified calculator slot."""
+
+    page.locator(".calculator .pal").nth(index).click()
+
+    search_input = page.get_by_placeholder("Search for Pal")
+    search_input.fill(pal_name)
+
+    page.locator(".pal .container").get_by_text(
+        pal_name, exact=True
+    ).first.click()
+
+def get_breeding_combinations(pals: list[str]) -> dict[str, list[str]]:
+    """Return breeding combinations for input pals"""
+
     combinations: dict[str, list[str]] = {}
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
+
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
         page = browser.new_page()
+
         page.goto(BASE_URL)
 
-        while len(pals) > 1:
-            pal1 = pals.pop(0)
-            page.locator(".calculator .pal").first.click()
-            time.sleep(0.2)
+        remaining_pals = list(pals)
 
-            page.fill("input[id='search-mini']", pal1)
-            time.sleep(0.2)
+        while len(remaining_pals) > 1:
+            pal1 = remaining_pals.pop(0)
 
-            page.locator(".pal .container").get_by_text(f"{pal1}").first.click()
-            time.sleep(0.2)
+            select_pal(page, pal1, index=0)
 
-            # Handle specific edge case where gender matters
-            for pal2 in tqdm(pals):
+            for pal2 in tqdm(remaining_pals, desc=f"Breeding with {pal1}"):
+
+                is_katress_wixen = {pal1, pal2} == {"Katress", "Wixen"}
+                if is_katress_wixen:
+                    katress_wixen_pair = f"{pal1} + {pal2}"
+                    combinations.setdefault("Katress Ignis", []).append(katress_wixen_pair)
+                    combinations.setdefault("Wixen Noct", []).append(katress_wixen_pair)
+
                 if (pal1 == "Katress" and pal2 == "Wixen") or (pal1 == "Wixen" and pal2 == "Katress"):
                     if "Katress Ignis" not in combinations:
                         combinations["Katress Ignis"] = []
@@ -35,27 +51,18 @@ def get_breeding_combinations(pals: list[str]):
                     combinations["Wixen Noct"].append(f"{pal1} + {pal2}")
                     break
 
-                page.locator(".calculator .pal").nth(1).click()
-                time.sleep(0.2)
+                select_pal(page, pal2, index=1)
 
-                page.fill("input[id='search-mini']", pal2)
-                time.sleep(0.2)
+                result = page.locator(".calculator .pal.result")
+                result.wait_for(state='visible')
+                text = result.text_content()
 
-                page.locator(".pal .container").get_by_text(f"{pal2}").first.click()
-                time.sleep(0.2)
+                if text is None:
+                    raise RuntimeError("Breeding result does not exist (has no text).")
 
-                selector = page.query_selector(".calculator .pal.result")
-                time.sleep(0.2)
+                combinations.setdefault(text, []).append(
+                    f"{pal1.strip()} + {pal2.strip()}"
+                )
 
-                if selector is None:
-                    raise RuntimeError(f"Element not found {selector}")
-
-                child = selector.text_content()
-                if child is None:
-                    raise RuntimeError(f"Text not found in element for {pal1} + {pal2}: {selector}")
-
-                if child not in combinations:
-                    combinations[child] = []
-                combinations[child].append(f"{pal1.strip()} + {pal2.strip()}")
         browser.close()
     return combinations
